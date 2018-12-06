@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
 
         Service._DoFile("python", appFile.getPath() + "/test.py", "");
         int result = python._Callint("add", 5, 2);
+        // TODO
         Log.d("", "result="+result);
 
         python._Set("JavaClass", Log.class);
