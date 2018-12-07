@@ -23,33 +23,30 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final File appFile = getFilesDir();  /*-- /data/data/packageName/files --*/
+        initPy();
+    }
+
+    protected void initPy(){
+
         final String appLib = getApplicationInfo().nativeLibraryDir;
 
         AsyncTask.execute(new Runnable() {
 
             @Override
             public void run() {
-                loadPy(appFile,appLib);
+                loadPy(appLib);
             }
         });
     }
 
-    void loadPy(File appFile,String appLib){
-        //拷贝Python相关环境
-        File pythonLibFile = new File(appFile, "python3.4.zip");
-        if (!pythonLibFile.exists()) {
-            copyFile(this,"libpython3.4m.so");
-            copyFile(this, "python3.4.zip");
-            copyFile(this, "_struct.cpython-34m.so");
-            copyFile(this, "binascii.cpython-34m.so");
-            copyFile(this, "time.cpython-34m.so");
-            copyFile(this, "zlib.cpython-34m.so");
-        }
+    void loadPy(String appLib){
 
-        // 拷贝Python 代码
-        copyFile(this, "calljava.py");
-        copyFile(this, "test.py");
+        // Extract python files from assets
+        AssetExtractor assetExtractor = new AssetExtractor(this);
+        assetExtractor.removeAssets("python");
+        assetExtractor.copyAssets("python");
+
+        final File appFile = getFilesDir();  /*-- /data/data/packageName/files --*/
 
         try {
             // 加载Python解释器
@@ -80,21 +77,28 @@ public class MainActivity extends AppCompatActivity {
         StarObjectClass pythonSys = python._GetObject("sys");
         StarObjectClass pythonPath = (StarObjectClass) pythonSys._Get("path");
         pythonPath._Call("insert", 0, appFile.getPath()+ File.separator +"python3.4.zip");
+        pythonPath._Call("insert", 0, appFile.getPath()+ File.separator +"cv2");
         pythonPath._Call("insert", 0, appLib);
         pythonPath._Call("insert", 0, appFile.getPath());
 
         //调用Python代码
-        Service._DoFile("python", appFile.getPath() + "/py_code.py", "");
+        Service._DoFile("python", appFile.getPath() + "/py_code.zip", "");
         long time = python._Calllong("get_time");
-        Log.d("", "form python time="+time);
+        Log.d("", "from python time="+time);
 
         Service._DoFile("python", appFile.getPath() + "/test.py", "");
         int result = python._Callint("add", 5, 2);
-        // TODO
         Log.d("", "result="+result);
 
         python._Set("JavaClass", Log.class);
         Service._DoFile("python", appFile.getPath() + "/calljava.py", "");
+
+        Service._DoFile("python", appFile.getPath() + "/cv_test.py","");
+        Service._DoFile("python", appFile.getPath() + "/test.py","");
+        Object object = python._Call("hello");
+        if(object !=null){
+            Log.d("",object.toString());
+        }
     }
 
     private void copyFile(Context c, String Name) {
