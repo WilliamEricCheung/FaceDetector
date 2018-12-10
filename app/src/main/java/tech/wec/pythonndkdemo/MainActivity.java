@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         final String pyPath = assetExtractor.getAssetsDataDir() + "python";
         try {
             // 加载Python解释器
-            System.load(appLib + File.separator + "libpython3.4m.so");
+            System.load(appLib + File.separator + "libpython3.6m.so");
 
             // 除了将代码直接拷贝，还支持将代码压缩为zip包，通过Install方法解压到指定路径
 //            InputStream dataSource = getAssets().open("py_code.zip");
@@ -71,13 +71,13 @@ public class MainActivity extends AppCompatActivity {
         Service._CheckPassword(false);
 
         /*----run python code----*/
-        SrvGroup._InitRaw("python34", Service);
+        SrvGroup._InitRaw("python36", Service);
         StarObjectClass python = Service._ImportRawContext("python", "", false, "");
         // 设置Python模块加载路径
         python._Call("import", "sys");
         StarObjectClass pythonSys = python._GetObject("sys");
         StarObjectClass pythonPath = (StarObjectClass) pythonSys._Get("path");
-        pythonPath._Call("insert", 0, pyPath+ File.separator + "python3.4.zip");
+        pythonPath._Call("insert", 0, pyPath+ File.separator + "python3.6.zip");
         pythonPath._Call("insert", 0, appLib);
         pythonPath._Call("insert", 0, pyPath);
 
