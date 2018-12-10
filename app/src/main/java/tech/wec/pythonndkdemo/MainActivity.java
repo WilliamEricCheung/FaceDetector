@@ -78,13 +78,22 @@ public class MainActivity extends AppCompatActivity {
         StarObjectClass pythonSys = python._GetObject("sys");
         StarObjectClass pythonPath = (StarObjectClass) pythonSys._Get("path");
         pythonPath._Call("insert", 0, pyPath+ File.separator + "python3.6.zip");
+        pythonPath._Call("insert", 0, pyPath+ File.separator +"requests");
+        pythonPath._Call("insert", 0, pyPath+ File.separator +"idna");
+        pythonPath._Call("insert", 0, pyPath+ File.separator +"certifi");
+        pythonPath._Call("insert", 0, pyPath+ File.separator +"chardet");
+        pythonPath._Call("insert", 0, pyPath+ File.separator +"urllib3");
+        pythonPath._Call("insert", 0, pyPath+ File.separator +"bs4");
         pythonPath._Call("insert", 0, appLib);
         pythonPath._Call("insert", 0, pyPath);
 
         //调用Python代码
+//        Service._DoFile("python", pyPath + "/py_code.py", "");
+//        long time = python._Calllong("get_time");
+//        Log.d("", "form python time="+time);
+        python._Set("JavaClass", Log.class);
         Service._DoFile("python", pyPath + "/py_code.py", "");
-        long time = python._Calllong("get_time");
-        Log.d("", "form python time="+time);
+        Log.d("callpython", "python end");
 
         Service._DoFile("python", pyPath + "/test.py", "");
         int result = python._Callint("add", 5, 2);

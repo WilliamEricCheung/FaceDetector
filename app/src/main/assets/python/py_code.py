@@ -1,11 +1,19 @@
-import imp
-import numpy as np
+import imp  #test load path
+import requests
+from bs4 import BeautifulSoup
 
-a = np.arange(10)
-print(a)
-a1 = np.arange(5,10)
-print(a1)
-a2 = np.arange(5,20,2)
-print(a2)
+def log(content):
+    JavaClass.d("formPython",content)
 
-print ("hello")
+# 存在连接超时的问题，但确实将bs4库引用进来了
+def testGet():
+    log('Hello,World from python')
+    # r = requests.get("https://www.baidu.com/")
+    r = requests.get("http://www.sina.com.cn/china")
+    r.encoding ='utf-8'
+    print(r.text)
+    bsObj = BeautifulSoup(r.text,"html.parser")
+    for node in bsObj.findAll("a"):
+        log("---**--- "+node.text)
+
+testGet()
