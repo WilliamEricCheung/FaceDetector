@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         final String pyPath = assetExtractor.getAssetsDataDir() + "python";
         try {
             // 加载Python解释器
-            System.load(appLib + File.separator + "libpython3.6m.so");
+            System.load(appLib + File.separator + "libpython3.7m.so");
 
             // 除了将代码直接拷贝，还支持将代码压缩为zip包，通过Install方法解压到指定路径
 //            InputStream dataSource = getAssets().open("py_code.zip");
@@ -71,13 +71,13 @@ public class MainActivity extends AppCompatActivity {
         Service._CheckPassword(false);
 
         /*----run python code----*/
-        SrvGroup._InitRaw("python36", Service);
+        SrvGroup._InitRaw("python37", Service);
         StarObjectClass python = Service._ImportRawContext("python", "", false, "");
         // 设置Python模块加载路径
         python._Call("import", "sys");
         StarObjectClass pythonSys = python._GetObject("sys");
         StarObjectClass pythonPath = (StarObjectClass) pythonSys._Get("path");
-        pythonPath._Call("insert", 0, pyPath+ File.separator + "python3.6.zip");
+        pythonPath._Call("insert", 0, pyPath+ File.separator + "python3.7.zip");
         pythonPath._Call("insert", 0, pyPath+ File.separator +"requests");
         pythonPath._Call("insert", 0, pyPath+ File.separator +"idna");
         pythonPath._Call("insert", 0, pyPath+ File.separator +"certifi");
@@ -91,13 +91,16 @@ public class MainActivity extends AppCompatActivity {
 //        Service._DoFile("python", pyPath + "/py_code.py", "");
 //        long time = python._Calllong("get_time");
 //        Log.d("", "form python time="+time);
-        python._Set("JavaClass", Log.class);
-        Service._DoFile("python", pyPath + "/py_code.py", "");
-        Log.d("callpython", "python end");
+
+//        python._Set("JavaClass", Log.class);
+//        Service._DoFile("python", pyPath + "/py_code.py", "");
+//        Log.d("callpython", "python end");
 
         Service._DoFile("python", pyPath + "/test.py", "");
         int result = python._Callint("add", 5, 2);
         Log.d("", "result="+result);
+
+        Service._DoFile("python", pyPath + "/py_numpy.py", "");
 
         python._Set("JavaClass", Log.class);
         Service._DoFile("python", pyPath + "/calljava.py", "");
