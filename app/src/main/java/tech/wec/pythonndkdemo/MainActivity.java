@@ -2,6 +2,7 @@ package tech.wec.pythonndkdemo;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,11 +20,22 @@ public class MainActivity extends AppCompatActivity {
 
     public StarSrvGroupClass SrvGroup;
 
+    String[] CPU_ABIS = Build.SUPPORTED_ABIS;
+    String CPU_ABI = Build.CPU_ABI;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        printABI();
         initPy();
+    }
+
+    protected void printABI(){
+        for(int i = 0; i<CPU_ABIS.length;i++){
+            Log.d("CPU INFO", "Supported ABI: " + CPU_ABIS[i]);
+        }
+        Log.d("CPU INFO", "ABI: " + CPU_ABI);
     }
 
     protected void initPy(){
