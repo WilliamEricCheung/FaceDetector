@@ -21,3 +21,8 @@ TO DO NEXT
 2. however, the cv2 library still needs to be tested
 3. quote: I have replaced the copyFile method by using AssetExtractor.class
 4. the principle of CLE should be carefully understood
+
+###2019 02 17
+1. delete all past files, and get off the CLE way from our project
+2. find "chaquopy" to help our project
+3. update with numpy
