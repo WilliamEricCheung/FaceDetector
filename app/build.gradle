@@ -22,6 +22,7 @@ android {
 //                install "cv2"
                 install "tensorflow"
                 install "opencv-python"
+                install "six"
             }
         }
     }
