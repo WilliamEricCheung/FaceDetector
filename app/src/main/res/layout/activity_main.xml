@@ -4,18 +4,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
     android:orientation="vertical"
+    android:background="@drawable/bg"
     tools:context="tech.wec.pythonndkdemo.MainActivity">
 
     <ImageView
+        android:visibility="gone"
         android:id="@+id/imageView"
-        android:layout_width="277dp"
-        android:layout_height="277dp"
+        android:layout_width="240dp"
+        android:layout_height="240dp"
         android:layout_gravity="center"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="50dp"
         android:background="@drawable/profile_round"
         />
+
+    <TextureView
+        android:layout_width="270dp"
+        android:layout_height="270dp"
+        android:visibility="visible"
+        android:id="@+id/tv_camera"
+        android:layout_gravity="center"
+        android:layout_marginTop="30dp"/>
 
     <tech.wec.pythonndkdemo.widget.RoundCornerButton
         android:id="@+id/bt_input"
@@ -33,7 +42,7 @@
         app:rcb_cornerRadius="20dp" />
 
     <tech.wec.pythonndkdemo.widget.RoundCornerButton
-        android:id="@+id/btn_output"
+        android:id="@+id/bt_output"
         android:layout_width="240dp"
         android:layout_height="40dp"
         android:layout_gravity="center"
