@@ -36,6 +36,11 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
     private String TAG = "MainActivity";
+
+    private static final int VIEW_MODE_RECORD = 0;
+    private static final int VIEW_MODE_DETECT = 1;
+    private int options = 0;
+
     private JavaCamera2View javaCamera2View;
 
     private Mat mRgba;
@@ -58,15 +63,15 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         @Override
         public void onManagerConnected(int status) {
             switch (status) {
-                case LoaderCallbackInterface.SUCCESS:
-                {
+                case LoaderCallbackInterface.SUCCESS: {
                     Log.i(TAG, "OpenCV loaded successfully");
                     javaCamera2View.enableView();
-                } break;
-                default:
-                {
+                }
+                break;
+                default: {
                     super.onManagerConnected(status);
-                } break;
+                }
+                break;
             }
         }
     };
@@ -106,12 +111,12 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         javaCamera2View = findViewById(R.id.cv_camera);
 
-        bt_input.setOnClickListener(new View.OnClickListener() {
+        imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 imageView.setVisibility(View.GONE);
                 javaCamera2View.setVisibility(View.VISIBLE);
-                if (javaCamera2View!=null){
+                if (javaCamera2View != null) {
                     javaCamera2View.disableView();
                     try {
                         Thread.sleep(30);
@@ -120,11 +125,34 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                         e.printStackTrace();
                     }
                 }
+                options = VIEW_MODE_DETECT;
                 javaCamera2View.enableView();
                 javaCamera2View.setCvCameraViewListener(MainActivity.this);
                 javaCamera2View.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_FRONT);
                 javaCamera2View.setMaxFrameSize(640, 640);
                 javaCamera2View.enableFpsMeter();
+            }
+        });
+        bt_input.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                options = VIEW_MODE_RECORD;
+//                imageView.setVisibility(View.GONE);
+//                javaCamera2View.setVisibility(View.VISIBLE);
+//                if (javaCamera2View!=null){
+//                    javaCamera2View.disableView();
+//                    try {
+//                        Thread.sleep(30);
+//                    } catch (InterruptedException e) {
+//                        // TODO Auto-generated catch block
+//                        e.printStackTrace();
+//                    }
+//                }
+//                javaCamera2View.enableView();
+//                javaCamera2View.setCvCameraViewListener(MainActivity.this);
+//                javaCamera2View.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_FRONT);
+//                javaCamera2View.setMaxFrameSize(640, 640);
+//                javaCamera2View.enableFpsMeter();
 //                mOpenCvCameraView.enableView();
 //                mOpenCvCameraView.setCvCameraViewListener(MainActivity.this);
 //                mOpenCvCameraView.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_BACK);
@@ -134,22 +162,23 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         bt_output.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                imageView.setVisibility(View.GONE);
-                javaCamera2View.setVisibility(View.VISIBLE);
-                if (javaCamera2View!=null){
-                    javaCamera2View.disableView();
-                    try {
-                        Thread.sleep(30);
-                    } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
-                javaCamera2View.enableView();
-                javaCamera2View.setCvCameraViewListener(MainActivity.this);
-                javaCamera2View.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_BACK);
-                javaCamera2View.setMaxFrameSize(640, 640);
-                javaCamera2View.enableFpsMeter();
+                options = VIEW_MODE_DETECT;
+//                imageView.setVisibility(View.GONE);
+//                javaCamera2View.setVisibility(View.VISIBLE);
+//                if (javaCamera2View!=null){
+//                    javaCamera2View.disableView();
+//                    try {
+//                        Thread.sleep(30);
+//                    } catch (InterruptedException e) {
+//                        // TODO Auto-generated catch block
+//                        e.printStackTrace();
+//                    }
+//                }
+//                javaCamera2View.enableView();
+//                javaCamera2View.setCvCameraViewListener(MainActivity.this);
+//                javaCamera2View.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_BACK);
+//                javaCamera2View.setMaxFrameSize(640, 640);
+//                javaCamera2View.enableFpsMeter();
             }
         });
     }
@@ -163,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
@@ -183,10 +212,10 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
     @Override
     public void onCameraViewStarted(int width, int height) {
-        mRgba = new Mat(height, width, CvType.CV_8U);
-        mFlipRgba = new Mat(height, width, CvType.CV_8U);
-        mGray = new Mat(height, width, CvType.CV_8U);
-        mRgbaT = new Mat(height, width, CvType.CV_8U);
+        mRgba = new Mat(height, width, CvType.CV_8UC3);
+        mFlipRgba = new Mat(height, width, CvType.CV_8UC3);
+        mGray = new Mat(height, width, CvType.CV_8UC3);
+        mRgbaT = new Mat(height, width, CvType.CV_8UC3);
     }
 
     @Override
@@ -210,24 +239,33 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         Imgproc.resize(mRgbaT, mGray, mGray.size(), 0.0D, 0.0D, 0); //将转置后的图像缩放为mRgbaF的大小
         Core.flip(mGray, mGray, 0); //根据x,y轴翻转，0-x 1-y
 
-//        mRgba = mirrorY(mRgba);
-//        mGray = mirrorY(mGray);
+        Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGR2RGB);
+
+        mRgba = mirrorY(mRgba);
+        mGray = mirrorY(mGray);
 //        mRgba = whiteBalance(mRgba);
+        final int option = options;
+        switch (option) {
+            case VIEW_MODE_RECORD:
+                return mGray;
+            case VIEW_MODE_DETECT:
+                return mRgba;
+        }
 
         return mRgba;
     }
 
-    private Mat mirrorY(Mat frame){
+    private Mat mirrorY(Mat frame) {
         int row = frame.rows();
         int col = frame.cols();
         Mat res = frame.clone();
-        for (int i =0;i<col;i++){
-            frame.col(col -1 -i).copyTo(res.col(i));
+        for (int i = 0; i < col; i++) {
+            frame.col(col - 1 - i).copyTo(res.col(i));
         }
         return res;
     }
 
-    private Mat whiteBalance(Mat frame){
+    private Mat whiteBalance(Mat frame) {
         List<Mat> imageRGB = new ArrayList<>();
         Core.split(frame, imageRGB);
         Mat imageBlueChannel = imageRGB.get(0);
@@ -255,4 +293,18 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         Core.merge(imageRGB, frame);
         return frame;
     }
+
+//    private Mat whiteGive(Mat src) {
+//        Mat dst = Mat.zeros(src.size(), src.type());
+//        double alpha = 1.2;
+//        double beta = -30;
+//        int rows = src.rows();
+//        int cols = src.cols();
+//        int channals = src.channels();
+//        for (int row = 0; row < rows; row++) {
+//            if (channals == 1){
+//                Imgproc.
+//            }
+//        }
+//    }
 }
