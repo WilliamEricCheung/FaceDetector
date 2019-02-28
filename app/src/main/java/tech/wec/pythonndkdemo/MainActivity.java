@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
+import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -21,6 +22,7 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfInt;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
@@ -137,25 +139,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             @Override
             public void onClick(View v) {
                 options = VIEW_MODE_RECORD;
-//                imageView.setVisibility(View.GONE);
-//                javaCamera2View.setVisibility(View.VISIBLE);
-//                if (javaCamera2View!=null){
-//                    javaCamera2View.disableView();
-//                    try {
-//                        Thread.sleep(30);
-//                    } catch (InterruptedException e) {
-//                        // TODO Auto-generated catch block
-//                        e.printStackTrace();
-//                    }
-//                }
-//                javaCamera2View.enableView();
-//                javaCamera2View.setCvCameraViewListener(MainActivity.this);
-//                javaCamera2View.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_FRONT);
-//                javaCamera2View.setMaxFrameSize(640, 640);
-//                javaCamera2View.enableFpsMeter();
-//                mOpenCvCameraView.enableView();
-//                mOpenCvCameraView.setCvCameraViewListener(MainActivity.this);
-//                mOpenCvCameraView.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_BACK);
             }
         });
 
@@ -163,22 +146,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             @Override
             public void onClick(View v) {
                 options = VIEW_MODE_DETECT;
-//                imageView.setVisibility(View.GONE);
-//                javaCamera2View.setVisibility(View.VISIBLE);
-//                if (javaCamera2View!=null){
-//                    javaCamera2View.disableView();
-//                    try {
-//                        Thread.sleep(30);
-//                    } catch (InterruptedException e) {
-//                        // TODO Auto-generated catch block
-//                        e.printStackTrace();
-//                    }
-//                }
-//                javaCamera2View.enableView();
-//                javaCamera2View.setCvCameraViewListener(MainActivity.this);
-//                javaCamera2View.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_BACK);
-//                javaCamera2View.setMaxFrameSize(640, 640);
-//                javaCamera2View.enableFpsMeter();
             }
         });
     }
@@ -243,6 +210,10 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         mRgba = mirrorY(mRgba);
         mGray = mirrorY(mGray);
+
+//        mRgba = prewhiten(mRgba);
+
+//        Log.i(TAG, mRgba.dump());
 //        mRgba = whiteBalance(mRgba);
         final int option = options;
         switch (option) {
@@ -251,10 +222,44 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             case VIEW_MODE_DETECT:
                 return mRgba;
         }
-
         return mRgba;
     }
 
+//    private Mat prewhiten(Mat src){
+//        double[][] array = matToArray(src);
+////        PyObject res = python.getModule("py_opencv").callAttr("prewhiten", array[0]);
+////        double[][] ret  = res.toJava(double.class);
+////        return ret;
+//    }
+
+    public static double[][] matToArray(Mat frame){
+        double array[][] = new double[frame.height()][frame.width()];
+        for (int i =0;i<frame.height();i++){
+            for (int j =0;j<frame.width();j++){
+                array[i][j] = frame.get(i,j)[0];
+            }
+        }
+        return array;
+    }
+
+    public static Mat arrayToMat(double[][] array,int height, int width, int matType)
+    {
+        Mat image = new Mat(height,width,matType);
+        for (int i=0; i<height; i++)
+        {
+            for (int j=0; j<width; j++)
+            {
+                image.put(i,j,array[i][j]);
+            }
+        }
+        return image;
+    }
+
+    /**
+     * 图像水平翻转
+     * @param frame
+     * @return
+     */
     private Mat mirrorY(Mat frame) {
         int row = frame.rows();
         int col = frame.cols();
@@ -265,46 +270,4 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         return res;
     }
 
-    private Mat whiteBalance(Mat frame) {
-        List<Mat> imageRGB = new ArrayList<>();
-        Core.split(frame, imageRGB);
-        Mat imageBlueChannel = imageRGB.get(0);
-        Mat imageGreenChannel = imageRGB.get(1);
-        Mat imageRedChannel = imageRGB.get(2);
-        Scalar B = Core.mean(imageBlueChannel);
-        Scalar G = Core.mean(imageGreenChannel);
-        Scalar R = Core.mean(imageRedChannel);
-        double KB, KG, KR;
-        KB = (R.val[0] + G.val[0] + B.val[0]) / (3 * B.val[0]);
-        KG = (R.val[0] + G.val[0] + B.val[0]) / (3 * G.val[0]);
-        KR = (R.val[0] + G.val[0] + B.val[0]) / (3 * R.val[0]);
-        Scalar BB = new Scalar(KB);
-        Scalar GG = new Scalar(KG);
-        Scalar RR = new Scalar(KR);
-        Core.multiply(imageRGB.get(0), BB, imageRGB.get(0));
-        Core.multiply(imageRGB.get(1), GG, imageRGB.get(1));
-        Core.multiply(imageRGB.get(2), RR, imageRGB.get(2));
-//        Core.addWeighted(imageBlueChannel,KB,imageBlueChannel,0,0,imageBlueChannel);
-//        Core.addWeighted(imageGreenChannel,KG,imageGreenChannel,0,0,imageGreenChannel);
-//        Core.addWeighted(imageRedChannel,KR,imageRedChannel,0,0,imageRedChannel);
-//        imageRGB.set(0, imageBlueChannel);
-//        imageRGB.set(1, imageGreenChannel);
-//        imageRGB.set(2, imageRedChannel);
-        Core.merge(imageRGB, frame);
-        return frame;
-    }
-
-//    private Mat whiteGive(Mat src) {
-//        Mat dst = Mat.zeros(src.size(), src.type());
-//        double alpha = 1.2;
-//        double beta = -30;
-//        int rows = src.rows();
-//        int cols = src.cols();
-//        int channals = src.channels();
-//        for (int row = 0; row < rows; row++) {
-//            if (channals == 1){
-//                Imgproc.
-//            }
-//        }
-//    }
 }
