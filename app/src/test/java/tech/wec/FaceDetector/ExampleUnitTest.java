@@ -1,4 +1,4 @@
-package tech.wec.pythonndkdemo;
+package tech.wec.FaceDetector;
 
 import org.junit.Test;
 

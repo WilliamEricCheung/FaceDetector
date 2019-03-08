@@ -1,4 +1,4 @@
-package tech.wec.pythonndkdemo.util;
+package tech.wec.FaceDetector.util;
 
 /**
  * Created by William Eric Cheung on 12/7/2018.

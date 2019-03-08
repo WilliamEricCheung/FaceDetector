@@ -1,4 +1,4 @@
-package tech.wec.pythonndkdemo.widget;
+package tech.wec.FaceDetector.widget;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -15,7 +15,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.AppCompatButton;
 import android.util.AttributeSet;
 
-import tech.wec.pythonndkdemo.R;
+import tech.wec.FaceDetector.R;
 
 public class RoundCornerButton extends AppCompatButton {
 
