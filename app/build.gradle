@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.chaquo.python'
 
 android {
     compileSdkVersion 26
@@ -14,16 +13,6 @@ android {
         ndk {
 //            abiFilters "armeabi-v7a", "armeabi", "arm64-v8a"
             abiFilters "armeabi-v7a"
-        }
-        python {
-//            buildPython "D:\\Dev\\Python36\\python.exe"
-            pip{
-                install "numpy"
-//                install "cv2"
-                install "tensorflow"
-                install "opencv-python"
-                install "six"
-            }
         }
     }
     sourceSets {

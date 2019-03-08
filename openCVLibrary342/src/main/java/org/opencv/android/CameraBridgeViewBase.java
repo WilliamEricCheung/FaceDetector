@@ -396,7 +396,7 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
         } else {
             modified = frame.rgba();
         }
-        Log.i("Main", "mFrameWidth: "+mFrameWidth+" mFrameHeight: "+mFrameHeight);
+//        Log.i("Main", "mFrameWidth: "+mFrameWidth+" mFrameHeight: "+mFrameHeight);
         mCacheBitmap.setHeight(160); mCacheBitmap.setWidth(160);
         Imgproc.resize(modified, modified, new Size(mFrameWidth/4, mFrameHeight/4));
         boolean bmpValid = true;
@@ -451,8 +451,8 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
 
                 canvas.drawBitmap(mCacheBitmap,
                         new Rect(0,0,mCacheBitmap.getWidth(), mCacheBitmap.getHeight()),new Rect(0,0,canvas.getWidth(),canvas.getHeight()), new Paint());
-                Log.i(TAG, "canvas: "+canvas.getHeight()+" x "+canvas.getWidth());
-                Log.i(TAG, "mCacheBitMap: "+mCacheBitmap.getWidth()+"x"+mCacheBitmap.getHeight());
+//                Log.i(TAG, "canvas: "+canvas.getHeight()+" x "+canvas.getWidth());
+//                Log.i(TAG, "mCacheBitMap: "+mCacheBitmap.getWidth()+"x"+mCacheBitmap.getHeight());
                 if (mFpsMeter != null) {
                     mFpsMeter.measure();
                     mFpsMeter.draw(canvas, 20, 30);

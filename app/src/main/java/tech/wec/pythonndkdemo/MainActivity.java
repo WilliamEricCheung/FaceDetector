@@ -11,9 +11,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
-import com.chaquo.python.PyObject;
-import com.chaquo.python.Python;
-
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCamera2View;
@@ -26,15 +23,6 @@ import org.opencv.core.MatOfInt;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @SuppressWarnings("deprecation")
 public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
@@ -54,8 +42,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
     // 获取相机权限
     private final int REQUEST_CAMERA_PERMISSION = 0;
-    // 初始化python实例
-    protected Python python = Python.getInstance();
     // 首页图片
     private ImageView imageView;
     // 录入数据按钮
@@ -88,11 +74,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        python.getModule("py_numpy").callAttr("numpyTest");
-        python.getModule("py_opencv").callAttr("OpenCVTest").callAttr("cv2Test");
-        python.getModule("py_tensorflow").callAttr("tfTest");
-
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
@@ -202,10 +183,19 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
+        preprocessFrame();
 
-        Log.i(TAG, "mRgba's size: " + mRgba.size());
-        Log.i(TAG, "mGray's size: " + mGray.size());
+        final int option = options;
+        switch (option) {
+            case VIEW_MODE_RECORD:
+                return mRgba;
+            case VIEW_MODE_DETECT:
+                return mGray;
+        }
+        return mRgba;
+    }
 
+    private void preprocessFrame(){
         Core.transpose(mRgba, mRgbaT); //转置函数，可以水平的图像变为垂直
         Imgproc.resize(mRgbaT, mRgba, mRgba.size(), 0.0D, 0.0D, 0); //将转置后的图像缩放为mRgbaF的大小
         Core.flip(mRgba, mRgba, 0); //根据x,y轴翻转，0-x 1-y
@@ -218,56 +208,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         mRgba = mirrorY(mRgba);
         mGray = mirrorY(mGray);
-
-//        mRgba = prewhiten(mRgba);
-
-        final int option = options;
-        switch (option) {
-            case VIEW_MODE_RECORD:
-                long startTime = System.currentTimeMillis(); //起始时间
-                Size size = new Size(160, 160);
-                Mat resize = new Mat(size, CvType.CV_8UC3);
-                Imgproc.resize(mRgba, resize, size);
-                long endTime = System.currentTimeMillis(); //结束时间
-                long runTime = endTime - startTime;
-                Log.i(TAG, String.format("resize方法使用时间 %d ms", runTime));
-                return mRgba;
-            case VIEW_MODE_DETECT:
-                return mGray;
-        }
-        return mRgba;
-    }
-
-    private Mat prewhiten(Mat src){
-
-        byte[] input = matToByteArray(src);
-
-        long startTime = System.currentTimeMillis(); //起始时间
-
-        PyObject output = python.getModule("py_opencv").callAttr("OpenCVTest").callAttr("prewhiten", input);
-//        Log.i(TAG,"return? ");
-//        Log.i(TAG, output.toString());
-        Mat out = output.toJava(Mat.class);
-
-        long endTime = System.currentTimeMillis(); //结束时间
-        long runTime = endTime - startTime;
-        Log.i(TAG, String.format("方法使用时间 %d ms", runTime));
-//        Mat ret = byteArrayToMat(out, 640, 640);
-//        Log.i(TAG, out.toString());
-        Imgproc.resize(out, out, new Size(640, 640));
-        return out;
-    }
-
-    private byte[] matToByteArray(Mat src){
-        byte[] ret = new byte[((int) src.total() * src.channels())];
-        src.get(0,0,ret);
-        return ret;
-    }
-
-    private Mat byteArrayToMat(byte[] src, int height, int width){
-        Mat ret = new Mat(height, width, CvType.CV_8UC3);
-        ret.put(0,0, src);
-        return ret;
     }
 
     /**
