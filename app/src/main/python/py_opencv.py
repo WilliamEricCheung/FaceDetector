@@ -1,22 +1,22 @@
 import cv2
 import numpy as np
+import os
+from org.opencv.core import Mat
+from org.opencv.core import CvType
+from java import cast, jarray, jboolean, jbyte, jchar, jclass, jint, jfloat
 
-def cv2Test():
-    print("opencv-python's version: "+cv2.__version__)
+class OpenCVTest(object):
+    def cv2Test(self):
+        print("opencv-python's version: "+cv2.__version__)
 
-    #some image preprocess stuff
-def prewhiten(xx):
-    x = xx.copy()
-    mean = np.mean(x)
-    print('mean: ' + mean)
-    std = np.std(x)
-    print('std:' + std)
-    '''
-    adj(A),表示A的伴随矩阵
-    adj(A)=det(A)×A^(-1)
-    '''
-    std_adj = np.maximum(std, 1.0 / np.sqrt(x.size))
-    print ('std_adj: '+ std_adj)
-    y = np.multiply(np.subtract(x, mean), 1 / std_adj)
-    print ('y: '+y)
-    return y
+        #some image preprocess stuff
+    def prewhiten(self, input):
+        xx = np.array(input)
+        x = xx.astype(np.uint8)
+
+        yy = jarray(jbyte)(x)
+        yyy = Mat(160, 160, CvType.CV_8UC3)
+        yyy.put(0,0,yy)
+        # print (yy)
+        print (yyy)
+        return yyy

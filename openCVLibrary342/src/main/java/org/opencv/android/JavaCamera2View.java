@@ -25,6 +25,7 @@ import android.view.ViewGroup.LayoutParams;
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 /**
@@ -333,7 +334,9 @@ public class JavaCamera2View extends CameraBridgeViewBase {
     private class JavaCamera2Frame implements CvCameraViewFrame {
         @Override
         public Mat gray() {
-            return mYuvFrameData.submat(0, mHeight, 0, mWidth);
+            mGray = mYuvFrameData.submat(0, mHeight, 0, mWidth);
+            Imgproc.resize(mGray, mGray, new Size(mWidth/4, mHeight/4));
+            return mGray;
         }
 
         @Override
@@ -347,7 +350,7 @@ public class JavaCamera2View extends CameraBridgeViewBase {
                 Imgproc.cvtColorTwoPlane(mYuvFrameData, mUVFrameData, mRgba, Imgproc.COLOR_YUV2RGBA_NV21);
             } else
                 throw new IllegalArgumentException("Preview Format can be NV21 or YV12");
-
+            Imgproc.resize(mRgba, mRgba, new Size(mWidth/4, mHeight/4));
             return mRgba;
         }
 
@@ -375,6 +378,7 @@ public class JavaCamera2View extends CameraBridgeViewBase {
 
         private Mat mYuvFrameData;
         private Mat mUVFrameData;
+        private Mat mGray;
         private Mat mRgba;
         private int mWidth;
         private int mHeight;

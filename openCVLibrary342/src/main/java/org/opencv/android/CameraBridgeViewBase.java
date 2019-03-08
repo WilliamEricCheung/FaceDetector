@@ -6,6 +6,7 @@ import org.opencv.BuildConfig;
 import org.opencv.R;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -358,8 +359,8 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
     private void onEnterStartedState() {
         Log.d(TAG, "call onEnterStartedState");
         /* Connect camera */
-//        if (!connectCamera(getWidth(), getHeight())) {
-        if (!connectCamera(640, 640)){
+        if (!connectCamera(getWidth(), getHeight())) {
+//        if (!connectCamera(640, 640)){
             AlertDialog ad = new AlertDialog.Builder(getContext()).create();
             ad.setCancelable(false); // This blocks the 'BACK' button
             ad.setMessage("It seems that you device does not support camera (or it is locked). Application will be closed.");
@@ -395,7 +396,9 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
         } else {
             modified = frame.rgba();
         }
-
+        Log.i("Main", "mFrameWidth: "+mFrameWidth+" mFrameHeight: "+mFrameHeight);
+        mCacheBitmap.setHeight(160); mCacheBitmap.setWidth(160);
+        Imgproc.resize(modified, modified, new Size(mFrameWidth/4, mFrameHeight/4));
         boolean bmpValid = true;
         if (modified != null) {
             try {
@@ -411,6 +414,7 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
         // 原官方代码，注释掉
 //        if (bmpValid && mCacheBitmap != null) {
 //            Canvas canvas = getHolder().lockCanvas();
+//            Log.i("Main", "canvas width: "+canvas.getWidth()+" height: "+canvas.getHeight());
 //            if (canvas != null) {
 //                canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
 //                if (BuildConfig.DEBUG)
@@ -447,7 +451,8 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
 
                 canvas.drawBitmap(mCacheBitmap,
                         new Rect(0,0,mCacheBitmap.getWidth(), mCacheBitmap.getHeight()),new Rect(0,0,canvas.getWidth(),canvas.getHeight()), new Paint());
-
+                Log.i(TAG, "canvas: "+canvas.getHeight()+" x "+canvas.getWidth());
+                Log.i(TAG, "mCacheBitMap: "+mCacheBitmap.getWidth()+"x"+mCacheBitmap.getHeight());
                 if (mFpsMeter != null) {
                     mFpsMeter.measure();
                     mFpsMeter.draw(canvas, 20, 30);
