@@ -2,6 +2,8 @@ package tech.wec.FaceDetector;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,6 +21,14 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+
+import static android.content.ContentValues.TAG;
 
 @SuppressWarnings("deprecation")
 public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
@@ -44,6 +54,13 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private Button bt_input;
     // 身份识别按钮
     private Button bt_output;
+
+    // native模型管理类
+    private MTCNN mtcnn = new MTCNN();
+    // 控制模型参数
+    private int minFaceSize = 40;
+    private int testTimeCount = 10;
+    private int threadsNumber = 8;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -71,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // 获取应用权限
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -79,8 +97,25 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                     Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE
             }, REQUEST_CAMERA_PERMISSION);
         }
-
+        // 拷贝模型到sd卡
+        try{
+            copyBigDataToSD("det1.bin");
+            copyBigDataToSD("det2.bin");
+            copyBigDataToSD("det3.bin");
+            copyBigDataToSD("det1.param");
+            copyBigDataToSD("det2.param");
+            copyBigDataToSD("det3.param");
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        initModel();
         initView();
+    }
+
+    private void initModel(){
+        File sdDir = Environment.getExternalStorageDirectory();// 获取根目录
+        String sdPath = sdDir.toString() + "/mtcnn/";
+        mtcnn.FaceDetectionModelInit(sdPath);
     }
 
     /**
@@ -221,4 +256,43 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         return res;
     }
 
+    //提取像素点
+    private byte[] getPixelsRGBA(Bitmap image) {
+        // calculate how many bytes our image consists of
+        int bytes = image.getByteCount();
+        ByteBuffer buffer = ByteBuffer.allocate(bytes); // Create a new buffer
+        image.copyPixelsToBuffer(buffer); // Move the byte data to the buffer
+        byte[] temp = buffer.array(); // Get the underlying array containing the
+
+        return temp;
+    }
+
+    private void copyBigDataToSD(String strOutFileName) throws IOException {
+        Log.i(TAG, "start copy file " + strOutFileName);
+        File sdDir = Environment.getExternalStorageDirectory();//获取跟目录
+        File file = new File(sdDir.toString()+"/mtcnn/");
+        if (!file.exists()) {
+            file.mkdir();
+        }
+
+        String tmpFile = sdDir.toString()+"/mtcnn/" + strOutFileName;
+        File f = new File(tmpFile);
+        if (f.exists()) {
+            Log.i(TAG, "file exists " + strOutFileName);
+            return;
+        }
+        InputStream myInput;
+        java.io.OutputStream myOutput = new FileOutputStream(sdDir.toString()+"/mtcnn/"+ strOutFileName);
+        myInput = this.getAssets().open(strOutFileName);
+        byte[] buffer = new byte[1024];
+        int length = myInput.read(buffer);
+        while (length > 0) {
+            myOutput.write(buffer, 0, length);
+            length = myInput.read(buffer);
+        }
+        myOutput.flush();
+        myInput.close();
+        myOutput.close();
+        Log.i(TAG, "end copy file " + strOutFileName);
+    }
 }

@@ -274,14 +274,19 @@ public class JavaCamera2View extends CameraBridgeViewBase {
             for (android.util.Size sz : sizes) {
                 int w = sz.getWidth(), h = sz.getHeight();
                 Log.d(LOGTAG, "trying size: " + w + "x" + h);
-                if (width >= w && height >= h && bestWidth <= w && bestHeight <= h
-                        && Math.abs(aspect - (float) w / h) < 0.2) {
-                    bestWidth = w;
-                    bestHeight = h;
+                // 找一个宽高比为1:1的画质最低的作为相机像素
+//                if (width >= w && height >= h && bestWidth <= w && bestHeight <= h && Math.abs(aspect - (float) w / h) < 0.2) {
+                if (bestWidth >= w && bestHeight >= h && Math.abs(aspect - (float) w / h) < 0.2) {
+                    if (w == h) {
+                        bestWidth = w;
+                        bestHeight = h;
+                        Log.i(LOGTAG, "prefer size: " + bestWidth + "x" + bestHeight);
+                    }
                 }
             }
             // 强行设置分辨率
-            bestHeight = 640; bestWidth = 640;
+//            bestHeight = 640; bestWidth = 640;
+
             Log.i(LOGTAG, "best size: " + bestWidth + "x" + bestHeight);
             assert(!(bestWidth == 0 || bestHeight == 0));
             if (mPreviewSize.getWidth() == bestWidth && mPreviewSize.getHeight() == bestHeight)

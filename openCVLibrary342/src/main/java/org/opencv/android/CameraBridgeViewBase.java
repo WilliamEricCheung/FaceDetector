@@ -398,7 +398,7 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
         }
 //        Log.i("Main", "mFrameWidth: "+mFrameWidth+" mFrameHeight: "+mFrameHeight);
         mCacheBitmap.setHeight(160); mCacheBitmap.setWidth(160);
-        Imgproc.resize(modified, modified, new Size(mFrameWidth/4, mFrameHeight/4));
+        Imgproc.resize(modified, modified, new Size(160, 160));
         boolean bmpValid = true;
         if (modified != null) {
             try {
