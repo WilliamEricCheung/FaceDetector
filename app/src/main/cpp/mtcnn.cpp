@@ -300,6 +300,7 @@ void MTCNN::PNet(){
         minl *= factor;
         m = m*factor;
     }
+    LOGD("scales_: %d", scales_.size());
     for (size_t i = 0; i < scales_.size(); i++) {
         int hs = (int)ceil(img_h*scales_[i]);
         int ws = (int)ceil(img_w*scales_[i]);
@@ -381,6 +382,7 @@ void MTCNN::detect(ncnn::Mat& img_, std::vector<Bbox>& finalBbox_){
     img = img_;
     img_w = img.w;
     img_h = img.h;
+    LOGD("MTCNN frame: %d, %d", img_w, img_h);
     img.substract_mean_normalize(mean_vals, norm_vals);
 
 #if(TIMEOPEN==1)
@@ -393,23 +395,23 @@ void MTCNN::detect(ncnn::Mat& img_, std::vector<Bbox>& finalBbox_){
     for(int i =0 ;i < count; i++) {
         time_0 = get_current_time();
 #endif
-
+        LOGD("start PNET");
         PNet();
         //the first stage's nms
         if(firstBbox_.size() < 1) return;
         nms(firstBbox_, nms_threshold[0]);
         refine(firstBbox_, img_h, img_w, true);
-        printf("firstBbox_.size()=%d\n", firstBbox_.size());
+        LOGD("firstBbox_.size()=%d\n", firstBbox_.size());
         //second stage
         RNet();
-        printf("secondBbox_.size()=%d\n", secondBbox_.size());
+        LOGD("secondBbox_.size()=%d\n", secondBbox_.size());
         if (secondBbox_.size() < 1) return;
         nms(secondBbox_, nms_threshold[1]);
         refine(secondBbox_, img_h, img_w, true);
 
         //third stage
         ONet();
-        printf("thirdBbox_.size()=%d\n", thirdBbox_.size());
+        LOGD("thirdBbox_.size()=%d\n", thirdBbox_.size());
         if (thirdBbox_.size() < 1) return;
         refine(thirdBbox_, img_h, img_w, true);
         nms(thirdBbox_, nms_threshold[2], "Min");
@@ -473,7 +475,7 @@ void MTCNN::detectMaxFace(ncnn::Mat& img_, std::vector<Bbox>& finalBbox) {
         m = m*factor;
     }
     sort(scales_.begin(), scales_.end());
-    //printf("scales_.size()=%d\n", scales_.size());
+    LOGD("scales_.size()=%d\n", scales_.size());
 
     //Change the sampling process.
     for (size_t i = 0; i < scales_.size(); i++)
@@ -488,7 +490,7 @@ void MTCNN::detectMaxFace(ncnn::Mat& img_, std::vector<Bbox>& finalBbox) {
         }
         firstPreviousBbox_.insert(firstPreviousBbox_.end(), firstBbox_.begin(), firstBbox_.end());
         refine(firstBbox_, img_h, img_w, true);
-        //printf("firstBbox_.size()=%d\n", firstBbox_.size());
+        LOGD("firstBbox_.size()=%d\n", firstBbox_.size());
 
         //second stage
         RNet();
@@ -501,7 +503,7 @@ void MTCNN::detectMaxFace(ncnn::Mat& img_, std::vector<Bbox>& finalBbox) {
             continue;
         }
         refine(secondBbox_, img_h, img_w, true);
-        //printf("secondBbox_.size()=%d\n", secondBbox_.size());
+        LOGD("secondBbox_.size()=%d\n", secondBbox_.size());
 
         //third stage
         ONet();
@@ -522,8 +524,8 @@ void MTCNN::detectMaxFace(ncnn::Mat& img_, std::vector<Bbox>& finalBbox) {
         }
     }
 
-    //printf("firstPreviousBbox_.size()=%d\n", firstPreviousBbox_.size());
-    //printf("secondPreviousBbox_.size()=%d\n", secondPreviousBbox_.size());
+    LOGD("firstPreviousBbox_.size()=%d\n", firstPreviousBbox_.size());
+    LOGD("secondPreviousBbox_.size()=%d\n", secondPreviousBbox_.size());
 
 #if(TIMEOPEN==1)
         time_1 = get_current_time();

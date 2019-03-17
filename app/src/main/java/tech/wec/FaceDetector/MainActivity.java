@@ -3,7 +3,13 @@ package tech.wec.FaceDetector;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,9 +23,12 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCamera2View;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
@@ -35,9 +44,9 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
     private String TAG = "MainActivity";
 
-    private static final int VIEW_MODE_RECORD = 0;
-    private static final int VIEW_MODE_DETECT = 1;
-    private int options = 0;
+    private static final int VIEW_MODE_RECORD = 1;
+    private static final int VIEW_MODE_DETECT = 2;
+    private int options;
 
     private JavaCamera2View javaCamera2View;
 
@@ -60,7 +69,9 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     // 控制模型参数
     private int minFaceSize = 40;
     private int testTimeCount = 10;
-    private int threadsNumber = 8;
+    private int threadsNumber = 4;
+    // 是否打开仅最大脸检测
+    private boolean maxFaceSetting = false ;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -91,10 +102,11 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         // 获取应用权限
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             Log.e("CameraNew", "Lacking privileges to access camera service, please request permission first.");
             ActivityCompat.requestPermissions(this, new String[]{
-                    Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE
             }, REQUEST_CAMERA_PERMISSION);
         }
         // 拷贝模型到sd卡
@@ -143,11 +155,11 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                         e.printStackTrace();
                     }
                 }
-                options = VIEW_MODE_DETECT;
+//                options = VIEW_MODE_RECORD;
                 javaCamera2View.enableView();
                 javaCamera2View.setCvCameraViewListener(MainActivity.this);
                 javaCamera2View.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_FRONT);
-                javaCamera2View.setMaxFrameSize(160,160);
+//                javaCamera2View.setMaxFrameSize(160,160);
                 javaCamera2View.enableFpsMeter();
             }
         });
@@ -219,11 +231,63 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         final int option = options;
         switch (option) {
             case VIEW_MODE_RECORD:
-                return mRgba;
+                return startDetectFace(mRgba, false);
             case VIEW_MODE_DETECT:
-                return mGray;
+                // GUI线程冲突问题需要解决
+                return startDetectFace(mRgba, true);
         }
         return mRgba;
+    }
+
+    /**
+     *
+     * @param frame
+     * @param detectMode true = maxFace
+     * @return
+     */
+    private Mat startDetectFace(Mat frame, boolean detectMode){
+        maxFaceSetting = detectMode;
+        mtcnn.SetMinFaceSize(minFaceSize);
+        mtcnn.SetTimeCount(testTimeCount);
+        mtcnn.SetThreadsNumber(threadsNumber);
+        Bitmap pic = Bitmap.createBitmap(frame.width(),frame.height(),Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(frame,pic);
+
+        int width = pic.getWidth();
+        int height = pic.getHeight();
+        byte[] imageData = getPixelsRGBA(pic);
+
+        long timeDetectFace = System.currentTimeMillis();
+        int[] faceInfo = null;
+        if (!maxFaceSetting){
+            faceInfo = mtcnn.FaceDetect(imageData, width, height, 4);
+            Log.i(TAG, "检测所有人脸");
+        }else{
+            faceInfo = mtcnn.MaxFaceDetect(imageData, width, height, 4);
+            Log.i(TAG, "检测最大人脸");
+        }
+        timeDetectFace = System.currentTimeMillis() - timeDetectFace;
+        Log.i(TAG, "人脸平均检测时间："+timeDetectFace/testTimeCount);
+
+        if (faceInfo.length > 1){
+            int faceNum = faceInfo[0];
+            Log.i(TAG, "人脸数目："+ faceNum);
+            for (int i=0;i<faceNum;i++){
+                int left, top, right, bottom;
+                left = faceInfo[1+14*i];
+                top = faceInfo[2+14*i];
+                right = faceInfo[3+14*i];
+                bottom = faceInfo[4+14*i];
+                Point lefttop = new Point(left, top);
+                Point rightbottom = new Point(right, bottom);
+                Imgproc.rectangle(frame, lefttop, rightbottom, new Scalar(255,255,0,255),2);
+            }
+        }else{
+            Log.i(TAG, "没有检测到人脸!!!");
+        }
+//        Log.i(TAG, "Mat to Bitmap: "+pic.getWidth()+"*"+pic.getHeight());
+//        Utils.bitmapToMat(pic, frame);
+        return frame;
     }
 
     private void preprocessFrame(){

@@ -6,7 +6,8 @@
 
 // ncnn
 #include "net.h"
-
+#include <opencv2/imgproc.hpp>
+#include <opencv2/core/core.hpp>
 #include "mtcnn.h"
 using namespace std;
 #define TAG "MtcnnSo"
@@ -114,6 +115,7 @@ Java_tech_wec_FaceDetector_MTCNN_FaceDetect(JNIEnv *env, jobject instance, jbyte
     }
 
     std::vector<Bbox> finalBbox;
+    // 开始MTCNN人脸检测
     mtcnn->detect(ncnn_img, finalBbox);
 
     int32_t num_face = static_cast<int32_t>(finalBbox.size());
@@ -255,6 +257,12 @@ Java_tech_wec_FaceDetector_MTCNN_SetMinFaceSize(JNIEnv *env, jobject instance, j
     return true;
 }
 
+// TODO
+//JNIEXPORT void JNICALL
+//Java_tech_wec_FaceDetector_MTCNN_DrawFaceRegion(JNIEnv * env, jclass obj, jintArray faceInfo, jlong frame){
+//    cv::
+//}
+
 
 JNIEXPORT jboolean JNICALL
 Java_tech_wec_FaceDetector_MTCNN_SetThreadsNumber(JNIEnv *env, jobject instance, jint threadsNumber) {
@@ -285,6 +293,5 @@ Java_tech_wec_FaceDetector_MTCNN_SetTimeCount(JNIEnv *env, jobject instance, jin
     return true;
 
 }
-
 
 }
