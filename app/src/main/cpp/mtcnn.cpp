@@ -1,7 +1,3 @@
-//
-// Created by Longqi on 2017/11/18..
-//
-
 /*
  * TO DO : change the P-net and update the generat box
  */
@@ -36,6 +32,7 @@ bool cmpArea(Bbox lsh, Bbox rsh) {
 
 
 //MTCNN::MTCNN(){}
+// 构造函数，用于加载模型
 MTCNN::MTCNN(const string &model_path) {
 
 	std::vector<std::string> param_files = {
@@ -58,6 +55,7 @@ MTCNN::MTCNN(const string &model_path) {
 	Onet.load_model(bin_files[2].data());
 }
 
+// 构造函数，用于加载模型
 MTCNN::MTCNN(const std::vector<std::string> param_files, const std::vector<std::string> bin_files){
     Pnet.load_param(param_files[0].data());
     Pnet.load_model(bin_files[0].data());
@@ -67,25 +65,24 @@ MTCNN::MTCNN(const std::vector<std::string> param_files, const std::vector<std::
     Onet.load_model(bin_files[2].data());
 }
 
-
+// 析构函数，释放网络
 MTCNN::~MTCNN(){
     Pnet.clear();
     Rnet.clear();
     Onet.clear();
 }
-
+// 设置识别的最小人脸面积，越大效率越低
 void MTCNN::SetMinFace(int minSize){
 	minsize = minSize;
 }
-
+// 设置线程数量，4线程效果最好
 void MTCNN::SetNumThreads(int numThreads){
     num_threads = numThreads;
 }
-
+// 设置循环测试次数
 void MTCNN::SetTimeCount(int timeCount) {
     count = timeCount;
 }
-
 
 void MTCNN::generateBbox(ncnn::Mat score, ncnn::Mat location, std::vector<Bbox>& boundingBox_, float scale){
     const int stride = 2;
@@ -291,16 +288,17 @@ void MTCNN::PNet(float scale)
 void MTCNN::PNet(){
     firstBbox_.clear();
     float minl = img_w < img_h? img_w: img_h;
-    float m = (float)MIN_DET_SIZE/minsize;
+    float m = (float)MIN_DET_SIZE/minsize;// MIN_DET_SIZE=12, minsize = 40, m = 0.3
     minl *= m;
-    float factor = pre_facetor;
-    vector<float> scales_;
+    float factor = pre_facetor; // factor = 0.709
+    vector<float> scales_; // 图片缩放金字塔
+    // 如果最小（宽或高）尺寸还大于最小金字塔的12像素的话，一直缩放
     while(minl>MIN_DET_SIZE){
         scales_.push_back(m);
         minl *= factor;
         m = m*factor;
     }
-    LOGD("scales_: %d", scales_.size());
+    LOGD("缩放金字塔大小scales_: %d", scales_.size());
     for (size_t i = 0; i < scales_.size(); i++) {
         int hs = (int)ceil(img_h*scales_[i]);
         int ws = (int)ceil(img_w*scales_[i]);
@@ -377,7 +375,7 @@ void MTCNN::ONet(){
 }
 
 #define TIMEOPEN 1 //设置是否开关调试，1为开，其它为关
-
+// 检测所有人脸
 void MTCNN::detect(ncnn::Mat& img_, std::vector<Bbox>& finalBbox_){
     img = img_;
     img_w = img.w;
@@ -437,7 +435,7 @@ void MTCNN::detect(ncnn::Mat& img_, std::vector<Bbox>& finalBbox_){
 
 }
 
-
+// 检测单个最大人脸
 void MTCNN::detectMaxFace(ncnn::Mat& img_, std::vector<Bbox>& finalBbox) {
     firstPreviousBbox_.clear();
     secondPreviousBbox_.clear();
@@ -450,7 +448,7 @@ void MTCNN::detectMaxFace(ncnn::Mat& img_, std::vector<Bbox>& finalBbox) {
     img = img_;
     img_w = img.w;
     img_h = img.h;
-    img.substract_mean_normalize(mean_vals, norm_vals);
+    img.substract_mean_normalize(mean_vals, norm_vals);//图片归一化
 
 #if(TIMEOPEN==1)
     double total_time = 0.;

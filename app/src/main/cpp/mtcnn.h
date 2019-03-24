@@ -33,16 +33,16 @@ struct Bbox
 class MTCNN {
 
 public:
-	MTCNN(const string &model_path);
-    MTCNN(const std::vector<std::string> param_files, const std::vector<std::string> bin_files);
-    ~MTCNN();
+	MTCNN(const string &model_path);// 构造函数，用于加载模型
+    MTCNN(const std::vector<std::string> param_files, const std::vector<std::string> bin_files);// 构造函数，用于加载模型
+    ~MTCNN();// 析构函数，释放网络
 	
-	void SetMinFace(int minSize);
-	void SetNumThreads(int numThreads);
-	void SetTimeCount(int timeCount);
+	void SetMinFace(int minSize);// 设置识别的最小人脸面积，越大效率越低
+	void SetNumThreads(int numThreads);// 设置线程数量，4线程效果最好
+	void SetTimeCount(int timeCount);// 设置循环测试次数
 
-    void detect(ncnn::Mat& img_, std::vector<Bbox>& finalBbox);
-	void detectMaxFace(ncnn::Mat& img_, std::vector<Bbox>& finalBbox);
+    void detect(ncnn::Mat& img_, std::vector<Bbox>& finalBbox); // 检测所有人脸
+	void detectMaxFace(ncnn::Mat& img_, std::vector<Bbox>& finalBbox); // 检测单个最大人脸
   //  void detection(const cv::Mat& img, std::vector<cv::Rect>& rectangles);
 private:
     void generateBbox(ncnn::Mat score, ncnn::Mat location, vector<Bbox>& boundingBox_, float scale);
@@ -58,8 +58,8 @@ private:
     ncnn::Net Pnet, Rnet, Onet;
     ncnn::Mat img;
     const float nms_threshold[3] = {0.5f, 0.7f, 0.7f};
-   
-    const float mean_vals[3] = {127.5, 127.5, 127.5};
+    // 归一化参数
+    const float mean_vals[3] = {127.5, 127.5, 127.5}; // 色彩范围的均值255/2
     const float norm_vals[3] = {0.0078125, 0.0078125, 0.0078125};
 	const int MIN_DET_SIZE = 12;
     std::vector<Bbox> firstBbox_, secondBbox_,thirdBbox_;
