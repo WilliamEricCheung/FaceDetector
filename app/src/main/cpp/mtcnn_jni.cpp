@@ -9,14 +9,16 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/core/core.hpp>
 #include "mtcnn.h"
+#include "FaceAlign.h"
 using namespace std;
+
 #define TAG "MtcnnSo"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG,TAG,__VA_ARGS__)
 static MTCNN *mtcnn;
+static FaceAlign *aligner;
 
 //sdk是否初始化成功
 bool detection_sdk_init_ok = false;
-
 
 extern "C" {
 
@@ -292,6 +294,30 @@ Java_tech_wec_FaceDetector_MTCNN_SetTimeCount(JNIEnv *env, jobject instance, jin
     mtcnn->SetTimeCount(timeCount);
     return true;
 
+}
+
+JNIEXPORT void JNICALL
+Java_tech_wec_FaceDetector_MTCNN_FaceAlign(JNIEnv *env, jobject obj, jlong frame_, jfloatArray landmarks_){
+       cv::Mat* frame = (cv::Mat*)frame_;
+       //LOGD("input face size: %d, %d", frame.cols, frame.rows);
+       std::vector<float> landmarks;
+       float* marks = env->GetFloatArrayElements(landmarks_, NULL);
+       int marks_num = env->GetArrayLength(landmarks_);
+       for(int i =0;i<marks_num;i++){
+            landmarks.push_back(marks[i]);
+       }
+       for(int i =0;i<marks_num;i++){
+            LOGD("%f",landmarks[i]);
+       }
+       LOGD("读入landmarks, 大小: %d", landmarks.size());
+       env->ReleaseFloatArrayElements(landmarks_, marks, 0);
+       pair<cv::Mat, string> aligned = aligner->align(*frame, landmarks);
+       const char* pos = aligned.second.c_str();
+       LOGD("face position: %s", pos);
+       LOGD("aligned face size: %d, %d", aligned.first.cols, aligned.first.rows);
+       frame->create(aligned.first.rows, aligned.first.cols, aligned.first.type());
+       memcpy(frame->data, aligned.first.data, aligned.first.rows * aligned.first.step);
+       LOGD("frame after align: %d, %d", frame->cols, frame->rows);
 }
 
 }

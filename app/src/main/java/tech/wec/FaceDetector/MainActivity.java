@@ -1,6 +1,7 @@
 package tech.wec.FaceDetector;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -11,11 +12,13 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -63,6 +66,8 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private Button bt_input;
     // 身份识别按钮
     private Button bt_output;
+    // 身份信息输入框
+    private EditText inputText;
 
     // native模型管理类
     private MTCNN mtcnn = new MTCNN();
@@ -117,6 +122,8 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             copyBigDataToSD("det1.param");
             copyBigDataToSD("det2.param");
             copyBigDataToSD("det3.param");
+            copyBigDataToSD("recognition.param");
+            copyBigDataToSD("recognition.bin");
         }catch (IOException e){
             e.printStackTrace();
         }
@@ -137,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         imageView = findViewById(R.id.imageView);
 //        tv_camera = findViewById(R.id.tv_camera);
         bt_input = findViewById(R.id.bt_input);
+        inputText = new EditText(this);
         bt_output = findViewById(R.id.bt_output);
 
         javaCamera2View = findViewById(R.id.cv_camera);
@@ -166,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         bt_input.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                options = VIEW_MODE_RECORD;
+                showDialog();
             }
         });
 
@@ -176,6 +184,23 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 options = VIEW_MODE_DETECT;
             }
         });
+    }
+
+    private void showDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setIcon(R.drawable.profile_round);
+        builder.setTitle("Please input your name");
+        builder.setView(inputText);
+        builder.setNegativeButton("Cancel", null);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String name = inputText.getText().toString();
+                Log.i(TAG, name);
+                // TODO
+            }
+        });
+        builder.show();
     }
 
     @Override
@@ -233,7 +258,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             case VIEW_MODE_RECORD:
                 return startDetectFace(mRgba, false);
             case VIEW_MODE_DETECT:
-                // GUI线程冲突问题需要解决
                 return startDetectFace(mRgba, true);
         }
         return mRgba;
@@ -281,6 +305,26 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 Point lefttop = new Point(left, top);
                 Point rightbottom = new Point(right, bottom);
                 Imgproc.rectangle(frame, lefttop, rightbottom, new Scalar(255,255,0,255),2);
+//                canvas.drawPoints(new float[]{faceInfo[5+14*i],faceInfo[10+14*i],
+//                        faceInfo[6+14*i],faceInfo[11+14*i],
+//                        faceInfo[7+14*i],faceInfo[12+14*i],
+//                        faceInfo[8+14*i],faceInfo[13+14*i],
+//                        faceInfo[9+14*i],faceInfo[14+14*i]}, paint);//画多个点
+                // 传入人脸五个特征坐标
+                float[] landmarks = new float[10];
+                landmarks[0] = faceInfo[5+14*i];
+                landmarks[1] = faceInfo[6+14*i];
+                landmarks[2] = faceInfo[7+14*i];
+                landmarks[3] = faceInfo[8+14*i];
+                landmarks[4] = faceInfo[9+14*i];
+                landmarks[5] = faceInfo[10+14*i];
+                landmarks[6] = faceInfo[11+14*i];
+                landmarks[7] = faceInfo[12+14*i];
+                landmarks[8] = faceInfo[13+14*i];
+                landmarks[9] = faceInfo[14+14*i];
+                mtcnn.FaceAlign(frame.getNativeObjAddr(), landmarks);
+                //Log.i(TAG, "frame size: "+ frame.cols()+" "+ frame.rows());
+
             }
         }else{
             Log.i(TAG, "没有检测到人脸!!!");
@@ -327,7 +371,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         ByteBuffer buffer = ByteBuffer.allocate(bytes); // Create a new buffer
         image.copyPixelsToBuffer(buffer); // Move the byte data to the buffer
         byte[] temp = buffer.array(); // Get the underlying array containing the
-
         return temp;
     }
 

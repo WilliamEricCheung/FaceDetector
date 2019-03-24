@@ -1,8 +1,6 @@
 package tech.wec.FaceDetector;
 
-/**
- * Created by hasee on 2017/12/19.
- */
+import org.opencv.core.Mat;
 
 public class MTCNN {
     //人脸检测模型导入
@@ -24,6 +22,8 @@ public class MTCNN {
 
     //循环测试次数
     public native boolean SetTimeCount(int timeCount);
+
+    public native void FaceAlign(long frame, float[] landmarks);
 
     static {
         System.loadLibrary("mtcnn");

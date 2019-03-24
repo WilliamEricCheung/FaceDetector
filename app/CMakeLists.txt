@@ -16,6 +16,12 @@ set_target_properties(libncnn
   PROPERTIES IMPORTED_LOCATION
   ${CMAKE_SOURCE_DIR}/libs/${ANDROID_ABI}/libncnn.a)
 
+#添加opencv库
+add_library(libopencv_java3 SHARED IMPORTED )
+set_target_properties(libopencv_java3
+  PROPERTIES IMPORTED_LOCATION
+  ${CMAKE_SOURCE_DIR}/libs/${ANDROID_ABI}/libopencv_java3.so)
+
 #编译为动态库
 add_library(mtcnn SHARED ${MTCNN_COMPILE_CODE})
 
@@ -23,6 +29,7 @@ add_library(mtcnn SHARED ${MTCNN_COMPILE_CODE})
 find_library(  log-lib log )
 target_link_libraries(  mtcnn
                        libncnn
+                       libopencv_java3
                        jnigraphics
                        z
                        ${log-lib} )

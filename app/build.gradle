@@ -32,6 +32,7 @@ android {
     sourceSets {
         main {
             jniLibs.srcDirs = ['libs']
+            jni.srcDirs = ['src/main/cpp']
         }
     }
     buildTypes {

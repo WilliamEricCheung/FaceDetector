@@ -26,7 +26,7 @@ void FaceNet::SetThreadNum(int threadNum)
 
 void FaceNet::RecogNet(ncnn::Mat & img_)
 {
-	feature_out.resize;
+	feature_out.resize(128);
 	ncnn::Extractor extractor = net.create_extractor();
 	extractor.set_num_threads(threadNum);
 	extractor.set_light_mode(true);

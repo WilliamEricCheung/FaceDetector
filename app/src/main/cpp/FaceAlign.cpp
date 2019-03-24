@@ -209,8 +209,8 @@ pair<cv::Mat, string> FaceAlign::align(cv::Mat & img, const vector<float>& landm
 	cv::Mat chips;
 	cv::Size d_size(desired_size, desired_size);
 	cv::warpAffine(img,chips, rot+shift, d_size);
-	cv::namedWindow("FaceAlign");
-	cv::imshow("FaceAlign", chips);
+//	cv::namedWindow("FaceAlign");
+//	cv::imshow("FaceAlign", chips);
 	return { chips, getPos(landmarks) };
 }
 
