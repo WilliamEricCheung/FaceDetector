@@ -4,13 +4,7 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -40,7 +34,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-import static android.content.ContentValues.TAG;
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 @SuppressWarnings("deprecation")
 public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
@@ -68,7 +63,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private Button bt_output;
     // 身份信息输入框
     private EditText inputText;
-
     // native模型管理类
     private MTCNN mtcnn = new MTCNN();
     // 控制模型参数
@@ -102,6 +96,10 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // The Realm file will be located in Context.getFilesDir() with name "default.realm"
+        Realm.init(this);
+        RealmConfiguration config = new RealmConfiguration.Builder().build();
+        Realm.setDefaultConfiguration(config);
         setContentView(R.layout.activity_main);
 
         // 获取应用权限
