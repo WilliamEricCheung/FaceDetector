@@ -36,6 +36,7 @@ import java.nio.ByteBuffer;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import tech.wec.FaceDetector.util.FaceDataTrans;
 
 @SuppressWarnings("deprecation")
 public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
@@ -71,6 +72,8 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private int threadsNumber = 4;
     // 是否打开仅最大脸检测
     private boolean maxFaceSetting = false ;
+    // 数据相关工作
+    private FaceDataTrans mFaceDataTrans = new FaceDataTrans();
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -98,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         super.onCreate(savedInstanceState);
         // The Realm file will be located in Context.getFilesDir() with name "default.realm"
         Realm.init(this);
-        RealmConfiguration config = new RealmConfiguration.Builder().build();
+        RealmConfiguration config = new RealmConfiguration.Builder().name("FaceDetector").deleteRealmIfMigrationNeeded().build();
         Realm.setDefaultConfiguration(config);
         setContentView(R.layout.activity_main);
 
@@ -196,6 +199,14 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 String name = inputText.getText().toString();
                 Log.i(TAG, name);
                 // TODO
+//                byte[] left = {1,2,3,4,5};
+//                byte[] center = {6,7,8,9,10};
+//                byte[] right = {11,12,13,14,15};
+                mFaceDataTrans.addFace(name);
+//                mFaceDataTrans.addFaceData(name, "left", left);
+//                mFaceDataTrans.addFaceData(name, "center", center);
+//                mFaceDataTrans.addFaceData(name, "right", right);
+
             }
         });
         builder.show();

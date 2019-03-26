@@ -10,7 +10,23 @@ import io.realm.annotations.PrimaryKey;
 
 public class FaceData extends RealmObject {
     @PrimaryKey
-    private String id;
-    public String name;
-    public RealmList<FacePosData> facePosData;
+    private String name;
+    private RealmList<FacePosData> facePosDatas;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public RealmList<FacePosData> getFacePosDatas() {
+        return facePosDatas;
+    }
+
+    public void setFacePosDatas(RealmList<FacePosData> facePosDatas) {
+        this.facePosDatas = facePosDatas;
+    }
+
 }
