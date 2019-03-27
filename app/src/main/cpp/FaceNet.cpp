@@ -3,7 +3,7 @@
 FaceNet::FaceNet(const string & model_path)
 {
 	string param_files = model_path + "/recognition.param";
-	string bin_files = model_path + "/recognition.param";
+	string bin_files = model_path + "/recognition.bin";
 	net.load_param(param_files.c_str());
 	net.load_model(bin_files.c_str());
 }

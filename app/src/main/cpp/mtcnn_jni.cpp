@@ -10,12 +10,14 @@
 #include <opencv2/core/core.hpp>
 #include "mtcnn.h"
 #include "FaceAlign.h"
+#include "FaceNet.h"
 using namespace std;
 
 #define TAG "MtcnnSo"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG,TAG,__VA_ARGS__)
 static MTCNN *mtcnn;
 static FaceAlign *aligner;
+static FaceNet *facenet;
 
 //sdk是否初始化成功
 bool detection_sdk_init_ok = false;
@@ -57,6 +59,8 @@ Java_tech_wec_FaceDetector_MTCNN_FaceDetectionModelInit(JNIEnv *env, jobject ins
     //没判断是否正确导入，懒得改了
     mtcnn = new MTCNN(tFaceModelDir);
     mtcnn->SetMinFace(40);
+    facenet = new FaceNet(tFaceModelDir);
+    facenet->SetThreadNum(4);
 
     env->ReleaseStringUTFChars(faceDetectionModelPath_, faceDetectionModelPath);
     detection_sdk_init_ok = true;
@@ -306,18 +310,31 @@ Java_tech_wec_FaceDetector_MTCNN_FaceAlign(JNIEnv *env, jobject obj, jlong frame
        for(int i =0;i<marks_num;i++){
             landmarks.push_back(marks[i]);
        }
-       for(int i =0;i<marks_num;i++){
-            LOGD("%f",landmarks[i]);
-       }
-       LOGD("读入landmarks, 大小: %d", landmarks.size());
+       //LOGD("读入landmarks, 大小: %d", landmarks.size());
        env->ReleaseFloatArrayElements(landmarks_, marks, 0);
        pair<cv::Mat, string> aligned = aligner->align(*frame, landmarks);
        const char* pos = aligned.second.c_str();
        LOGD("face position: %s", pos);
-       LOGD("aligned face size: %d, %d", aligned.first.cols, aligned.first.rows);
        frame->create(aligned.first.rows, aligned.first.cols, aligned.first.type());
        memcpy(frame->data, aligned.first.data, aligned.first.rows * aligned.first.step);
        LOGD("frame after align: %d, %d", frame->cols, frame->rows);
+}
+
+// 返回人脸三个位置之一的128D向量
+JNIEXPORT jfloatArray JNICALL
+Java_tech_wec_FaceDetector_MTCNN_FaceArray(JNIEnv *env, jobject obj, jbyteArray faceData_){
+    jbyte *faceData = env->GetByteArrayElements(faceData_, NULL);
+    unsigned char *faceImageCharData = (unsigned char*) faceData;
+    int data_length = env->GetArrayLength(faceData_);
+    LOGD("start get array--length: %d", data_length);
+    ncnn::Mat ncnn_img = ncnn::Mat::from_pixels_resize(faceImageCharData, ncnn::Mat::PIXEL_RGBA2RGB, 160, 160, 112, 112);
+    std::vector<float> feature;
+    facenet->start(ncnn_img, feature);//problem???
+    env->ReleaseByteArrayElements(faceData_, faceData, 0);
+    jfloatArray res = env->NewFloatArray(feature.size());
+    float *feature_arr = feature.data();
+    env->SetFloatArrayRegion(res, 0, feature.size(), feature_arr);
+    return res;
 }
 
 }

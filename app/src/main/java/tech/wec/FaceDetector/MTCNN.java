@@ -25,6 +25,8 @@ public class MTCNN {
 
     public native void FaceAlign(long frame, float[] landmarks);
 
+    public native float[] FaceArray(byte[] faceData);
+
     static {
         System.loadLibrary("mtcnn");
     }

@@ -285,6 +285,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         mtcnn.SetThreadsNumber(threadsNumber);
         Bitmap pic = Bitmap.createBitmap(frame.width(),frame.height(),Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(frame,pic);
+        Mat alignedFace = frame.clone();
 
         int width = pic.getWidth();
         int height = pic.getHeight();
@@ -301,7 +302,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         }
         timeDetectFace = System.currentTimeMillis() - timeDetectFace;
         Log.i(TAG, "人脸平均检测时间："+timeDetectFace/testTimeCount);
-
         if (faceInfo.length > 1){
             int faceNum = faceInfo[0];
             Log.i(TAG, "人脸数目："+ faceNum);
@@ -313,12 +313,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 bottom = faceInfo[4+14*i];
                 Point lefttop = new Point(left, top);
                 Point rightbottom = new Point(right, bottom);
-                Imgproc.rectangle(frame, lefttop, rightbottom, new Scalar(255,255,0,255),2);
-//                canvas.drawPoints(new float[]{faceInfo[5+14*i],faceInfo[10+14*i],
-//                        faceInfo[6+14*i],faceInfo[11+14*i],
-//                        faceInfo[7+14*i],faceInfo[12+14*i],
-//                        faceInfo[8+14*i],faceInfo[13+14*i],
-//                        faceInfo[9+14*i],faceInfo[14+14*i]}, paint);//画多个点
+
                 // 传入人脸五个特征坐标
                 float[] landmarks = new float[10];
                 landmarks[0] = faceInfo[5+14*i];
@@ -331,9 +326,23 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 landmarks[7] = faceInfo[12+14*i];
                 landmarks[8] = faceInfo[13+14*i];
                 landmarks[9] = faceInfo[14+14*i];
-                mtcnn.FaceAlign(frame.getNativeObjAddr(), landmarks);
-                //Log.i(TAG, "frame size: "+ frame.cols()+" "+ frame.rows());
 
+                mtcnn.FaceAlign(alignedFace.getNativeObjAddr(), landmarks);
+                //Log.i(TAG, "frame size: "+ frame.cols()+" "+ frame.rows());
+                Bitmap tmp = Bitmap.createBitmap(alignedFace.width(),alignedFace.height(),Bitmap.Config.ARGB_8888);
+                Utils.matToBitmap(alignedFace,tmp);
+                byte[] alignedFaceData = getPixelsRGBA(tmp);
+                Log.i(TAG, "aligned Face Data size: "+ alignedFaceData.length);
+                float[] faceData = mtcnn.FaceArray(alignedFaceData);
+                Log.i(TAG, "Face Data Size: "+faceData.length);
+                Imgproc.rectangle(frame, lefttop, rightbottom, new Scalar(255,255,0,255),2);
+//                canvas.drawPoints(new float[]{faceInfo[5+14*i],faceInfo[10+14*i],
+//                        faceInfo[6+14*i],faceInfo[11+14*i],
+//                        faceInfo[7+14*i],faceInfo[12+14*i],
+//                        faceInfo[8+14*i],faceInfo[13+14*i],
+//                        faceInfo[9+14*i],faceInfo[14+14*i]}, paint);//画多个点
+
+                //return alignedFace;
             }
         }else{
             Log.i(TAG, "没有检测到人脸!!!");
