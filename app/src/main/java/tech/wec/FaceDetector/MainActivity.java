@@ -1,7 +1,9 @@
 package tech.wec.FaceDetector;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.Environment;
@@ -10,10 +12,14 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -62,6 +68,8 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private Button bt_input;
     // 身份识别按钮
     private Button bt_output;
+    // 身份数据管理按钮
+    private Button bt_info;
     // 身份信息输入框
     private EditText inputText;
     // native模型管理类
@@ -99,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         // The Realm file will be located in Context.getFilesDir() with name "default.realm"
         Realm.init(this);
         RealmConfiguration config = new RealmConfiguration.Builder().name("FaceDetector").deleteRealmIfMigrationNeeded().build();
@@ -147,6 +156,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         bt_input = findViewById(R.id.bt_input);
         inputText = new EditText(this);
         bt_output = findViewById(R.id.bt_output);
+        bt_info = findViewById(R.id.bt_info);
 
         javaCamera2View = findViewById(R.id.cv_camera);
 
@@ -164,17 +174,30 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                         e.printStackTrace();
                     }
                 }
-//                options = VIEW_MODE_RECORD;
                 javaCamera2View.enableView();
                 javaCamera2View.setCvCameraViewListener(MainActivity.this);
                 javaCamera2View.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_FRONT);
-//                javaCamera2View.setMaxFrameSize(160,160);
                 javaCamera2View.enableFpsMeter();
             }
         });
         bt_input.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                imageView.setVisibility(View.GONE);
+                javaCamera2View.setVisibility(View.VISIBLE);
+                if (javaCamera2View != null) {
+                    javaCamera2View.disableView();
+                    try {
+                        Thread.sleep(30);
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+                javaCamera2View.enableView();
+                javaCamera2View.setCvCameraViewListener(MainActivity.this);
+                javaCamera2View.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_FRONT);
+                javaCamera2View.enableFpsMeter();
                 showDialog();
             }
         });
@@ -182,15 +205,40 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         bt_output.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                imageView.setVisibility(View.GONE);
+                javaCamera2View.setVisibility(View.VISIBLE);
+                if (javaCamera2View != null) {
+                    javaCamera2View.disableView();
+                    try {
+                        Thread.sleep(30);
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+                javaCamera2View.enableView();
+                javaCamera2View.setCvCameraViewListener(MainActivity.this);
+                javaCamera2View.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_FRONT);
+                javaCamera2View.enableFpsMeter();
                 options = VIEW_MODE_DETECT;
+            }
+        });
+
+        bt_info.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, FaceInfoActivity.class);
+                startActivity(intent);
             }
         });
     }
 
     private void showDialog(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setIcon(R.drawable.profile_round);
         builder.setTitle("Please input your name");
+        if(inputText.getParent()!=null)
+            ((ViewGroup)inputText.getParent()).removeView(inputText);
         builder.setView(inputText);
         builder.setNegativeButton("Cancel", null);
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -198,18 +246,25 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             public void onClick(DialogInterface dialog, int which) {
                 String name = inputText.getText().toString();
                 Log.i(TAG, name);
-                // TODO
+
 //                byte[] left = {1,2,3,4,5};
 //                byte[] center = {6,7,8,9,10};
 //                byte[] right = {11,12,13,14,15};
-                mFaceDataTrans.addFace(name);
+                // 添加成功的条件是，没有这个人的名字，如果已经存在就失败
+                final boolean success = mFaceDataTrans.addFace(name);
+                if(success){
+                    Toast.makeText(MainActivity.this, "人脸信息添加成功", Toast.LENGTH_LONG).show();
+                    // TODO
+                }else{
+                    Toast.makeText(MainActivity.this, "人脸信息已经存在，无法重复添加", Toast.LENGTH_LONG).show();
+                }
 //                mFaceDataTrans.addFaceData(name, "left", left);
 //                mFaceDataTrans.addFaceData(name, "center", center);
 //                mFaceDataTrans.addFaceData(name, "right", right);
-
             }
         });
-        builder.show();
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     @Override

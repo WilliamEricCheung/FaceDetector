@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_titlebar"
+    android:layout_width="match_parent"
+    android:layout_height="52dp"
+    android:background="@color/colorPrimary">
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="154dp"
+        android:layout_height="match_parent"
+        android:ellipsize="marquee"
+        android:gravity="center|center_horizontal"
+        android:textSize="20dp"
+        android:textStyle="normal"
+        android:textColor="@color/white"
+        android:text="@string/app_name"/>
+    <Button
+        android:id="@+id/bt_info"
+        android:layout_width="60dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true"
+        android:text="管理"
+        android:background="@android:color/transparent"
+        android:textColor="@color/white"
+        android:textSize="18dp"
+        android:layout_marginRight="5dp"/>
+</RelativeLayout>
