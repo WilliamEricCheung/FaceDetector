@@ -1,6 +1,7 @@
 package tech.wec.FaceDetector.util;
 
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by willi on 3/25/2019.

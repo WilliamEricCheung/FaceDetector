@@ -50,12 +50,21 @@ android {
     }
 }
 
+repositories {  //添加stetho-realm代码仓库地址
+    maven {
+        url 'https://github.com/WickeDev/stetho-realm/raw/master/maven-repo'
+    }
+}
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     //    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
     //        exclude group: 'com.android.support', module: 'support-annotations'
     //    })
-    implementation 'com.android.support:appcompat-v7:26+'
+    implementation 'com.facebook.stetho:stetho:1.5.0'
+    implementation 'com.uphyca:stetho_realm:2.2.2'
+    implementation 'com.android.support:appcompat-v7:26.0.0'
+    implementation 'com.android.support:design:26.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     //    testCompile 'junit:junit:4.12'
     implementation project(':openCVLibrary342')

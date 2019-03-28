@@ -45,17 +45,28 @@ public class FaceDataTrans {
         final String pos = pos_;
         final byte[] img = img_;
         final FaceData faceData = mRealm.where(FaceData.class).equalTo("name", name).findFirst();
-        mRealm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                FacePosData facePosData = realm.createObject(FacePosData.class);
-                facePosData.setPos(pos);
-                facePosData.setImg(img);
-                faceData.getFacePosDatas().add(facePosData);
-                realm.copyToRealm(facePosData);
-                realm.copyToRealmOrUpdate(faceData);
-            }
-        });
+        FacePosData tmp= faceData.getFacePosDatas().where().equalTo("pos", pos).findFirst();
+        if (tmp == null) {
+            mRealm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    FacePosData facePosData = realm.createObject(FacePosData.class);
+                    facePosData.setPos(pos);
+                    facePosData.setImg(img);
+                    faceData.getFacePosDatas().add(facePosData);
+                    realm.copyToRealm(facePosData);
+                    realm.copyToRealmOrUpdate(faceData);
+                }
+            });
+        }else{
+            mRealm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    FacePosData facePosData = faceData.getFacePosDatas().where().equalTo("pos", pos).findFirst();
+                    facePosData.setImg(img);
+                }
+            });
+        }
 
     }
 

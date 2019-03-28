@@ -23,7 +23,7 @@ public class MTCNN {
     //循环测试次数
     public native boolean SetTimeCount(int timeCount);
 
-    public native void FaceAlign(long frame, float[] landmarks);
+    public native String FaceAlign(long frame, float[] landmarks);
 
     public native float[] FaceArray(byte[] faceData);
 

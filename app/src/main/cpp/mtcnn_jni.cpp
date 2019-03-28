@@ -263,12 +263,6 @@ Java_tech_wec_FaceDetector_MTCNN_SetMinFaceSize(JNIEnv *env, jobject instance, j
     return true;
 }
 
-// TODO
-//JNIEXPORT void JNICALL
-//Java_tech_wec_FaceDetector_MTCNN_DrawFaceRegion(JNIEnv * env, jclass obj, jintArray faceInfo, jlong frame){
-//    cv::
-//}
-
 
 JNIEXPORT jboolean JNICALL
 Java_tech_wec_FaceDetector_MTCNN_SetThreadsNumber(JNIEnv *env, jobject instance, jint threadsNumber) {
@@ -300,7 +294,7 @@ Java_tech_wec_FaceDetector_MTCNN_SetTimeCount(JNIEnv *env, jobject instance, jin
 
 }
 
-JNIEXPORT void JNICALL
+JNIEXPORT jstring JNICALL
 Java_tech_wec_FaceDetector_MTCNN_FaceAlign(JNIEnv *env, jobject obj, jlong frame_, jfloatArray landmarks_){
        cv::Mat* frame = (cv::Mat*)frame_;
        //LOGD("input face size: %d, %d", frame.cols, frame.rows);
@@ -318,6 +312,7 @@ Java_tech_wec_FaceDetector_MTCNN_FaceAlign(JNIEnv *env, jobject obj, jlong frame
        frame->create(aligned.first.rows, aligned.first.cols, aligned.first.type());
        memcpy(frame->data, aligned.first.data, aligned.first.rows * aligned.first.step);
        LOGD("frame after align: %d, %d", frame->cols, frame->rows);
+       return env->NewStringUTF(aligned.second.c_str());
 }
 
 // 返回人脸三个位置之一的128D向量
@@ -329,7 +324,7 @@ Java_tech_wec_FaceDetector_MTCNN_FaceArray(JNIEnv *env, jobject obj, jbyteArray 
     LOGD("start get array--length: %d", data_length);
     ncnn::Mat ncnn_img = ncnn::Mat::from_pixels_resize(faceImageCharData, ncnn::Mat::PIXEL_RGBA2RGB, 160, 160, 112, 112);
     std::vector<float> feature;
-    facenet->start(ncnn_img, feature);//problem???
+    facenet->start(ncnn_img, feature);
     env->ReleaseByteArrayElements(faceData_, faceData, 0);
     jfloatArray res = env->NewFloatArray(feature.size());
     float *feature_arr = feature.data();
