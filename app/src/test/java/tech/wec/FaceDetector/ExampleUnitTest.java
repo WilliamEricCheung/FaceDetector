@@ -1,9 +1,12 @@
 package tech.wec.FaceDetector;
 
+import android.content.Context;
+
 import org.junit.Test;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import tech.wec.FaceDetector.util.FaceDataTrans;
 
 import static org.junit.Assert.*;
 

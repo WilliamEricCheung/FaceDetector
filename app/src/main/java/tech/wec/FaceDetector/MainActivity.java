@@ -20,6 +20,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.stetho.Stetho;
@@ -81,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private Button bt_info;
     // 身份信息输入框
     private EditText inputText;
+    // 结果信息
+    private TextView tv_name;
     // native模型管理类
     private MTCNN mtcnn = new MTCNN();
     // 控制模型参数
@@ -121,13 +124,17 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         Realm.init(this);
         RealmConfiguration config = new RealmConfiguration.Builder().name("FaceDetector.realm").deleteRealmIfMigrationNeeded().build();
         Realm.setDefaultConfiguration(config);
+
+        // 如果出问题，就全部清干净数据库
+        //mFaceDataTrans.cleanRealm();
+        //mFaceDataTrans.deleteFaceData("William Eric Cheung");
+
         // realm inspection
         Stetho.initialize(
                 Stetho.newInitializerBuilder(this)
                         .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
                         .enableWebKitInspector(RealmInspectorModulesProvider.builder(this).build())
                         .build());
-
         setContentView(R.layout.activity_main);
 
         // 获取应用权限
@@ -173,6 +180,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         inputText = new EditText(this);
         bt_output = findViewById(R.id.bt_output);
         bt_info = findViewById(R.id.bt_info);
+        tv_name = findViewById(R.id.tv_name);
 
         javaCamera2View = findViewById(R.id.cv_camera);
 
@@ -415,7 +423,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 // 得到pos和faceData后进行数据库的存入
                 Log.i(TAG, "input name: " + inputName);
                 mFaceDataTrans.addFaceData(inputName, pos, encode(faceData));
-//                Log.i(TAG, "Face Data Size: "+faceData.length);
+
                 Imgproc.rectangle(frame, lefttop, rightbottom, new Scalar(255, 255, 0, 255), 2);
 //                canvas.drawPoints(new float[]{faceInfo[5+14*i],faceInfo[10+14*i],
 //                        faceInfo[6+14*i],faceInfo[11+14*i],
@@ -497,14 +505,20 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 Log.i(TAG, "aligned Face Data size: " + alignedFaceData.length);
                 float[] faceData = mtcnn.FaceArray(alignedFaceData);
                 Log.i(TAG, "Face Data Size: " + faceData.length);
+
                 // 遍历数据库，寻找某姓名中3*128D数据最短欧氏距离的人脸数据
                 // 先将摄像头下的人脸数据填入表，作为临时变量name==tmp，然后进行对比，如果找到后面只有tmp符合，就查找失败
                 mFaceDataTrans.addFace("tmp");
                 mFaceDataTrans.addFaceData("tmp", pos, encode(faceData));
-                // 删除临时变量tmp
-                mFaceDataTrans.deleteLastName();
+                // 将临时变量和其他数据进行对比
+                String res = mFaceDataTrans.findName("tmp");
+                Log.i(TAG, "发现人脸，姓名： "+ res);
+                tv_name.setText("Welcome, "+ res);
+                // 记得删除临时姓名tmp
+
 
                 Imgproc.rectangle(frame, lefttop, rightbottom, new Scalar(255, 255, 0, 255), 2);
+                //Imgproc.putText(frame, res, lefttop,Core.FONT_HERSHEY_SIMPLEX,2, new Scalar(255,255,0,255),2);
 //                canvas.drawPoints(new float[]{faceInfo[5+14*i],faceInfo[10+14*i],
 //                        faceInfo[6+14*i],faceInfo[11+14*i],
 //                        faceInfo[7+14*i],faceInfo[12+14*i],
@@ -515,9 +529,9 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             }
         } else {
             Log.i(TAG, "没有检测到人脸!!!");
+            tv_name.setText("Look at the Camera pls");
         }
-//        Log.i(TAG, "Mat to Bitmap: "+pic.getWidth()+"*"+pic.getHeight());
-//        Utils.bitmapToMat(pic, frame);
+
         return frame;
     }
 
