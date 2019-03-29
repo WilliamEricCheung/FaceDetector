@@ -50,6 +50,8 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import tech.wec.FaceDetector.util.FaceDataTrans;
 
+import static java.sql.Types.NULL;
+
 @SuppressWarnings("deprecation")
 public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
@@ -264,17 +266,17 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 // 添加成功的条件是，没有这个人的名字，如果已经存在就失败
                 final boolean success = mFaceDataTrans.addFace(name);
                 if (success) {
-                    // TODO
+                    options = VIEW_MODE_RECORD;
                     View view = findViewById(R.id.activity_main);
                     Snackbar.make(view, "请缓慢移动面部录入不同角度数据", Snackbar.LENGTH_INDEFINITE)
                             .setAction("完毕", new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
                                     Toast.makeText(MainActivity.this, "录入成功", Toast.LENGTH_LONG).show();
+                                    options = NULL;
                                 }
                             }).show();
                     inputName = name;
-                    options = VIEW_MODE_RECORD;
                 } else {
                     Toast.makeText(MainActivity.this, "人脸信息已经存在，无法重复添加", Toast.LENGTH_LONG).show();
                 }
@@ -402,6 +404,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 landmarks[8] = faceInfo[13 + 14 * i];
                 landmarks[9] = faceInfo[14 + 14 * i];
 
+                // 摄像头下的人脸数据
                 String pos = mtcnn.FaceAlign(alignedFace.getNativeObjAddr(), landmarks);
                 Log.i(TAG, "position: " + pos);
                 Bitmap tmp = Bitmap.createBitmap(alignedFace.width(), alignedFace.height(), Bitmap.Config.ARGB_8888);
@@ -485,6 +488,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 landmarks[8] = faceInfo[13 + 14 * i];
                 landmarks[9] = faceInfo[14 + 14 * i];
 
+                // 摄像头下的人脸数据
                 String pos = mtcnn.FaceAlign(alignedFace.getNativeObjAddr(), landmarks);
                 Log.i(TAG, "position: " + pos);
                 Bitmap tmp = Bitmap.createBitmap(alignedFace.width(), alignedFace.height(), Bitmap.Config.ARGB_8888);
@@ -493,6 +497,13 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 Log.i(TAG, "aligned Face Data size: " + alignedFaceData.length);
                 float[] faceData = mtcnn.FaceArray(alignedFaceData);
                 Log.i(TAG, "Face Data Size: " + faceData.length);
+                // 遍历数据库，寻找某姓名中3*128D数据最短欧氏距离的人脸数据
+                // 先将摄像头下的人脸数据填入表，作为临时变量name==tmp，然后进行对比，如果找到后面只有tmp符合，就查找失败
+                mFaceDataTrans.addFace("tmp");
+                mFaceDataTrans.addFaceData("tmp", pos, encode(faceData));
+                // 删除临时变量tmp
+                mFaceDataTrans.deleteLastName();
+
                 Imgproc.rectangle(frame, lefttop, rightbottom, new Scalar(255, 255, 0, 255), 2);
 //                canvas.drawPoints(new float[]{faceInfo[5+14*i],faceInfo[10+14*i],
 //                        faceInfo[6+14*i],faceInfo[11+14*i],

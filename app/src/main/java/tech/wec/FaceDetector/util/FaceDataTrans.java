@@ -5,6 +5,7 @@ import android.util.Log;
 import java.util.Arrays;
 
 import io.realm.Realm;
+import io.realm.RealmResults;
 
 /**
  * Created by willi on 3/26/2019.
@@ -100,6 +101,28 @@ public class FaceDataTrans {
             public void execute(Realm realm) {
                 FaceData faceData = realm.where(FaceData.class).equalTo("name", name).findFirst();
                 faceData.deleteFromRealm();
+            }
+        });
+    }
+
+    // 默认输入是tmp，之前已经将tmp存入数据库
+    public String findName(String tmp_){
+        final String tmp = tmp_;
+        String res;
+        byte[] left = getFacePosImg(tmp, "left");
+        byte[] center = getFacePosImg(tmp, "center");
+        byte[] right = getFacePosImg(tmp,"right");
+        return "........";
+    }
+
+    // 删除最后一条人脸信息，即删除tmp
+    public void deleteLastName(){
+        Realm mRealm = Realm.getDefaultInstance();
+        final RealmResults<FaceData> faceDatas = mRealm.where(FaceData.class).findAll();
+        mRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                faceDatas.deleteLastFromRealm();
             }
         });
     }
