@@ -141,14 +141,18 @@ public class FaceDataTrans {
                     FacePosData leftData = facePosDatas.where().equalTo("pos", "Left").findFirst();
                     FacePosData centerData = facePosDatas.where().equalTo("pos", "Center").findFirst();
                     FacePosData rightData = facePosDatas.where().equalTo("pos", "Right").findFirst();
-                    float[] left2 = decode(leftData.getImg());
-                    float[] center2 = decode(centerData.getImg());
-                    float[] right2 = decode(rightData.getImg());
-                    float grade = similarity(left1, center1, right1, left2, center2, right2);
-                    Log.i(TAG, "similarity: " + who + " : " + grade);
-                    if (grade > max) {
-                        max = grade;
-                        name = who;
+                    if (leftData==null || centerData==null || rightData == null)
+                        continue;
+                    else {
+                        float[] left2 = decode(leftData.getImg());
+                        float[] center2 = decode(centerData.getImg());
+                        float[] right2 = decode(rightData.getImg());
+                        float grade = similarity(left1, center1, right1, left2, center2, right2);
+                        Log.i(TAG, "similarity: " + who + " : " + grade);
+                        if (grade > max) {
+                            max = grade;
+                            name = who;
+                        }
                     }
                 }
             }

@@ -130,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         //mFaceDataTrans.deleteFaceData("William Eric Cheung");
 
         // realm inspection
+        // seek chrome://inspect/#devices
         Stetho.initialize(
                 Stetho.newInitializerBuilder(this)
                         .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
@@ -223,6 +224,9 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 showDialog();
             }
         });
+        if (options == VIEW_MODE_DETECT){
+            bt_output.setText("停止检测");
+        }
 
         bt_output.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -241,7 +245,14 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 javaCamera2View.setCvCameraViewListener(MainActivity.this);
                 javaCamera2View.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_FRONT);
                 javaCamera2View.enableFpsMeter();
-                options = VIEW_MODE_DETECT;
+                if (options == VIEW_MODE_DETECT){
+                    options = 0;
+                    bt_output.setText("开始检测");
+                    tv_name.setText("Welcome");
+                }else{
+                    options = VIEW_MODE_DETECT;
+                    bt_output.setText("停止检测");
+                }
             }
         });
 
