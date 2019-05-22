@@ -88,8 +88,8 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private MTCNN mtcnn = new MTCNN();
     // 控制模型参数
     private int minFaceSize = 40;
-    private int testTimeCount = 10;
-    private int threadsNumber = 4;
+    private int testTimeCount = 1;
+    private int threadsNumber = 8;
     // 是否打开仅最大脸检测
     private boolean maxFaceSetting = false;
     // 数据相关工作
@@ -256,6 +256,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             }
         });
 
+        bt_info.setVisibility(View.GONE);
         bt_info.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -480,8 +481,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             faceInfo = mtcnn.MaxFaceDetect(imageData, width, height, 4);
             Log.i(TAG, "检测最大人脸");
         }
-        timeDetectFace = System.currentTimeMillis() - timeDetectFace;
-        Log.i(TAG, "人脸平均检测时间：" + timeDetectFace / testTimeCount);
+
         if (faceInfo.length > 1) {
             int faceNum = faceInfo[0];
             Log.i(TAG, "人脸数目：" + faceNum);
@@ -542,7 +542,8 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             Log.i(TAG, "没有检测到人脸!!!");
             tv_name.setText("Look at the Camera pls");
         }
-
+        timeDetectFace = System.currentTimeMillis() - timeDetectFace;
+        Log.i(TAG, "人脸平均检测时间：" + timeDetectFace / testTimeCount);
         return frame;
     }
 
